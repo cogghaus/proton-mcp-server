@@ -35,7 +35,7 @@
     "@modelcontextprotocol/sdk": "^1.6.1",
     "dotenv": "^16.4.0",
     "imapflow": "^1.0.171",
-    "mailparser": "^3.7.0",
+    "mailparser": "^3.9.14",
     "nodemailer": "^6.9.0",
     "zod": "^3.23.8"
   },

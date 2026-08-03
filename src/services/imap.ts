@@ -3,7 +3,7 @@
  */
 
 import { ImapFlow } from 'imapflow';
-import { IMAP_HOST, IMAP_PORT, PROTON_USER, PROTON_PASS } from '../constants.js';
+import { IMAP_HOST, IMAP_PORT, PROTON_USER, PROTON_PASS, isLoopbackHost } from '../constants.js';
 import type { MailboxInfo, MessageEnvelope, FullMessage, SearchCriteria } from '../types.js';
 import { simpleParser } from 'mailparser';
 import { Readable } from 'stream';
@@ -21,7 +21,9 @@ export async function getImapClient(): Promise<ImapFlow> {
       pass: PROTON_PASS,
     },
     tls: {
-      rejectUnauthorized: false,
+      // Off only for Bridge on loopback, which uses a self-signed certificate.
+      // Verify for any other host — see isLoopbackHost.
+      rejectUnauthorized: !isLoopbackHost(IMAP_HOST),
     },
     logger: false,
   });
@@ -108,7 +110,10 @@ export async function listMessages(
             subject: msg.envelope.subject || '(no subject)',
             date: msg.envelope.date || new Date(),
             flags: Array.from(msg.flags || []).map(f => String(f)),
-            seen: msg.flags.has('\\Seen'),
+            // msg.flags is optional — the line above already guards it. Reading
+            // .has() directly threw a TypeError on any message the server
+            // returned without a flags set.
+            seen: msg.flags?.has('\\Seen') ?? false,
           });
         }
       }
@@ -204,7 +209,8 @@ export async function searchMessages(
             subject: msg.envelope.subject || '(no subject)',
             date: msg.envelope.date || new Date(),
             flags: Array.from(msg.flags || []).map(f => String(f)),
-            seen: msg.flags.has('\\Seen'),
+            // See listMessages — same optional-flags crash.
+            seen: msg.flags?.has('\\Seen') ?? false,
           });
         }
       }
@@ -242,6 +248,9 @@ export async function fetchMessage(folder: string, uid: number): Promise<FullMes
       // Parse the message source
       let textBody: string | undefined;
       let htmlBody: string | undefined;
+      // The References header comes from the parsed source, not the IMAP
+      // envelope — ImapFlow's MessageEnvelopeObject has no `references` field.
+      let references: string | undefined;
       const attachments: Array<{
         filename: string;
         contentType: string;
@@ -253,6 +262,9 @@ export async function fetchMessage(folder: string, uid: number): Promise<FullMes
 
         textBody = parsed.text;
         htmlBody = parsed.html || undefined;
+        references = Array.isArray(parsed.references)
+          ? parsed.references.join(' ')
+          : parsed.references || undefined;
 
         if (parsed.attachments) {
           for (const attachment of parsed.attachments) {
@@ -296,7 +308,7 @@ export async function fetchMessage(folder: string, uid: number): Promise<FullMes
         attachments,
         messageId: envelope?.messageId || undefined,
         inReplyTo: envelope?.inReplyTo || undefined,
-        references: envelope?.references ? envelope.references.join(' ') : undefined,
+        references,
       };
     } finally {
       lock.release();

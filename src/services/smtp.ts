@@ -3,7 +3,7 @@
  */
 
 import nodemailer from 'nodemailer';
-import { SMTP_HOST, SMTP_PORT, PROTON_USER, PROTON_PASS } from '../constants.js';
+import { SMTP_HOST, SMTP_PORT, PROTON_USER, PROTON_PASS, isLoopbackHost } from '../constants.js';
 
 interface MailOptions {
   from?: string;
@@ -30,7 +30,9 @@ export function getTransporter() {
       pass: PROTON_PASS,
     },
     tls: {
-      rejectUnauthorized: false,
+      // Off only for Bridge on loopback, which uses a self-signed certificate.
+      // Verify for any other host — see isLoopbackHost.
+      rejectUnauthorized: !isLoopbackHost(SMTP_HOST),
     },
   });
 }
@@ -64,26 +66,9 @@ export async function sendMail(options: MailOptions): Promise<string> {
   return result.messageId || 'success';
 }
 
-/**
- * Send a reply to an email
- */
-export async function sendReply(
-  originalMessageId: string,
-  originalReferences: string | undefined,
-  originalSubject: string,
-  replyText: string,
-  replyHtml?: string
-): Promise<string> {
-  const references = originalReferences
-    ? `${originalReferences} ${originalMessageId}`
-    : originalMessageId;
-
-  return sendMail({
-    to: PROTON_USER,
-    subject: `Re: ${originalSubject}`,
-    text: replyText,
-    html: replyHtml,
-    inReplyTo: originalMessageId,
-    references,
-  });
-}
+// A sendReply() helper used to live here. It was never referenced — the reply
+// tool builds its own recipient list and calls sendMail directly — and it
+// addressed the reply to `PROTON_USER`, i.e. back to the sending account rather
+// than to whoever sent the original message. Anything wired up to it would have
+// silently mailed the user their own replies, so it is removed rather than left
+// as a trap.

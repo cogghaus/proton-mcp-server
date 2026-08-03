@@ -24,22 +24,23 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --outDir dist --clean --no-dts",
-    "build:tsc": "tsc",
+    "build": "tsup src/index.ts --format esm --outDir dist --clean",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "clean": "rm -rf dist",
     "test": "vitest run"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^16.4.0",
     "imapflow": "^1.0.171",
     "mailparser": "^3.7.0",
-    "nodemailer": "^6.9.0",
+    "nodemailer": "^9.0.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/mailparser": "^3.4.6",
     "@types/node": "^22.10.0",
     "@types/nodemailer": "^6.4.0",
     "tsup": "^8.5.1",

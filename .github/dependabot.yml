@@ -1,0 +1,50 @@
+# Dependabot configuration.
+#
+# There was no config here, so only security updates were raised and each one
+# arrived as its own PR — six were open simultaneously, none of them verified
+# because the repository had no CI.
+#
+# Grouping keeps that to one PR for production and one for development
+# dependencies. Majors are excluded from the schedule: they deserve a
+# deliberate look rather than arriving as routine weekly noise. This does not
+# weaken security coverage, since Dependabot security updates are driven by
+# advisories rather than by this schedule.
+
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      production:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+      development:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+    commit-message:
+      prefix: chore(deps)
+      prefix-development: chore(deps-dev)
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+    commit-message:
+      prefix: chore(ci)

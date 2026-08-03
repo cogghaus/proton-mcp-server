@@ -1,0 +1,45 @@
+name: CI
+
+# There was no CI on this repository at all, so nothing verified pull requests —
+# including the six open Dependabot bumps, which showed no checks whatsoever.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Runs first: the published build uses tsup/esbuild, which strips types
+      # without checking them, so this is the only thing standing between a type
+      # error and a release.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Fails the job on high or critical advisories rather than warning, so
+      # dependency debt cannot quietly accumulate the way it did before.
+      - name: Audit dependencies
+        run: npm audit --audit-level=high

@@ -6,6 +6,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ReadEmailSchema } from '../schemas/index.js';
 import { fetchMessage } from '../services/imap.js';
+import { CHARACTER_LIMIT } from '../constants.js';
 import { z } from 'zod';
 
 export function registerReadEmailTool(server: McpServer) {
@@ -78,7 +79,7 @@ export function registerReadEmailTool(server: McpServer) {
           content: [
             {
               type: 'text',
-              text: result,
+              text: truncate(result),
             },
           ],
         };
@@ -94,6 +95,22 @@ export function registerReadEmailTool(server: McpServer) {
       }
     }
   );
+}
+
+/**
+ * Cap the rendered email at CHARACTER_LIMIT.
+ *
+ * The constant existed but was never applied, so a single large message —
+ * a newsletter with a big HTML body, say — was returned in full and could
+ * consume the caller's entire context window. Truncation is marked inline so
+ * the model can tell the message was cut rather than silently ending.
+ */
+function truncate(text: string): string {
+  if (text.length <= CHARACTER_LIMIT) {
+    return text;
+  }
+  const omitted = text.length - CHARACTER_LIMIT;
+  return `${text.slice(0, CHARACTER_LIMIT)}\n\n[Truncated: ${omitted.toLocaleString()} more characters. Message exceeds the ${CHARACTER_LIMIT.toLocaleString()}-character limit.]`;
 }
 
 /**

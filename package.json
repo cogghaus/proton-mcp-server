@@ -34,8 +34,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^16.4.0",
-    "imapflow": "^1.0.171",
-    "mailparser": "^3.7.0",
+    "imapflow": "^1.6.6",
+    "mailparser": "^3.9.15",
     "nodemailer": "^9.0.3",
     "zod": "^3.23.8"
   },

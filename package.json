@@ -36,7 +36,7 @@
     "dotenv": "^16.4.0",
     "imapflow": "^1.0.171",
     "mailparser": "^3.7.0",
-    "nodemailer": "^9.0.3",
+    "nodemailer": "^9.1.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {

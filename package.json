@@ -32,7 +32,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.0",
     "dotenv": "^16.4.0",
     "imapflow": "^1.0.171",
     "mailparser": "^3.7.0",
